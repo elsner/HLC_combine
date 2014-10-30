@@ -1,0 +1,118 @@
+
+NAME
+
+       HLC_combine - compute harmonic linear combinations of maps
+
+
+DESCRIPTION
+
+       This program computes a harmonic linear combination (HLC) of
+       the nine Planck temperature frequency maps (3 from LFI, 6 from
+       HFI) with multipole-dependent weights to produce a spherical
+       map. The (lmax+1)*9 harmonic weights are externally supplied
+       (i.e., read from an input file) and can be determined from an
+       algorithm like SMICA, for instance.
+
+       When applied to Planck input data, the HLC output may be an
+       estimated CMB map or the map of any other component, depending
+       on the HLC weights. Of course, the application of the
+       algorithm is not restricted to data maps; it can also be used
+       to propagate noise simulations.
+
+       The code is fully parallelized, a typical usage to compute a
+       large number of simulations would be to distribute the work
+       load over many nodes (using MPI), and enable OpenMP to work
+       with a few cores per node on a single realization.
+
+       It has been tested with recent versions of the Intel
+       Fortran compiler using hybrid MPI and OpenMP parallelization.
+
+
+INSTALLATION
+
+       Prerequisites: - Healpix
+                      - CFITSIO
+                      - Modern Fortran compiler with MPI wrapper
+
+       Prior to compilation, edit the 'Makefile' to reflect your MPI
+       compiler wrapper. Also, make sure that the CFITSIO library, and
+       the Healpix library and include directories are correctly
+       specified.
+
+
+USAGE
+
+       The algorithm reads keyword - keyvalue pairs from a namelist in
+       the configuration file 'input.cfg'. Here, the user is asked to
+       specify
+
+       FILE_IN_W8RING_DIR:
+          Directory of the Healpix pixel weights, typically
+          $HEALPIX/data. Only the directory should be specified, the
+          file name itself will be appended according to the Healpix
+          naming convention.
+
+       FILE_IN_HLC_COEFF:
+          HLC coefficients to be used to calculate the linear
+          combination. It must be in ASCII table form, with 9 columns
+          for the different frequencies, and lmax+1 rows.
+
+       FILE_FILENAMELIST:
+          Text file that contains the list of input and output file
+          names, one entry per line. The file names must be provided
+          in the following order:
+
+	  Input file simulation 1 LFI  30 GHz
+	  Input file simulation 1 LFI  44 GHz
+	  Input file simulation 1 LFI  70 GHz
+	  Input file simulation 1 HFI 100 GHz
+	  Input file simulation 1 HFI 143 GHz
+	  Input file simulation 1 HFI 217 GHz
+	  Input file simulation 1 HFI 353 GHz
+	  Input file simulation 1 HFI 545 GHz
+	  Input file simulation 1 HFI 857 GHz
+	  Output file simulation 1
+	  Input file simulation 2 LFI  30 GHz
+	  Input file simulation 2 LFI  44 GHz
+	  Input file simulation 2 LFI  70 GHz
+	  Input file simulation 2 HFI 100 GHz
+	  Input file simulation 2 HFI 143 GHz
+	  Input file simulation 2 HFI 217 GHz
+	  Input file simulation 2 HFI 353 GHz
+	  Input file simulation 2 HFI 545 GHz
+	  Input file simulation 2 HFI 857 GHz
+	  Output file simulation 2
+	  ...
+
+	  This text file must not contain comments, blank lines,
+	  whitespaces, etc.
+
+	  The format to specify the output file names follows the
+	  Healpix convention. That is, if it is prepended with an
+	  exclamation point, "!", possibly existing output files will
+	  be overwritten.
+
+	  The total number of simulations that can be supplied in the
+	  file and subsequently processed in a single run of the
+	  pipeline is currently limited to 10000. File names should
+	  contain absolute paths and be at most 150 characters long.
+
+
+RESTRICTIONS
+
+       The software package HLC_combine does not implement a universal
+       HLC. In its latest version, it is restricted to the Planck
+       format in the sense that it assumes a total of nine input maps,
+       the first three of which are provided at resolution nside=1024,
+       and the last six at nside=2048.
+
+       Input files are expected to be in the Healpix ordering scheme
+       'RING'. If maps are provided in 'NESTED' format, and a valid
+       FITS header containing the "ORDERING='NESTED'" entry is
+       present, the input will be automatically reordered into 'RING'
+       scheme. Irrespective of the input, the output map will always
+       be stored in single precision and 'RING' ordering.
+
+       One MPI instance of the program demands about 4 GB of
+       memory. Make sure that your computing environment complies with
+       this requirement.
